@@ -15,24 +15,24 @@ module Fixy
       end
     end
 
-    # Formats datetime to YYYYMMDDHHMMSS
+    # Formats datetime to MMDDYYYYHHMMSS
     module DateTime
       def format_datetime(input, byte_width)
-        input.strftime("%Y%m%d%H%M%S")
+        input.strftime("%m%d%Y%H%M%S")
       end
     end
 
-    # Formats date to YYYYMMDD
+    # Formats date to MMDDYYYY
     module Date
       def format_date(input, byte_width)
-        ::Date.strptime(input, "%d/%m/%Y").strftime("%Y%m%d")
+        ::Date.strptime(input, "%d/%m/%Y").strftime("%m%d%Y")
       end
     end
 
-    # Formats date to YYMMDD
-    module ShortDate
+    # Formats date to YYYY
+    module YearDate
       def format_short_date(input, byte_width)
-        ::Date.strptime(input, "%d/%m/%Y").strftime("%y%m%d")
+        ::Date.strptime(input, "%d/%m/%Y").strftime("%Y")
       end
     end
 

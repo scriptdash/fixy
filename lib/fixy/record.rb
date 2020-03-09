@@ -14,7 +14,7 @@ module Fixy
         @line_ending = character
       end
 
-      def field(name, size, range, type)
+      def field(name, size, range, type, &block)
         @record_fields ||= default_record_fields
         range_matches = range.match /^(\d+)(?:-(\d+))?$/
 
@@ -42,7 +42,7 @@ module Fixy
         # We're good to go :)
         @record_fields[range_from] = { name: name, from: range_from, to: range_to, size: size, type: type}
 
-        field_value(name, Proc.new) if block_given?
+        field_value(name, block) if block_given?
       end
 
       # Convenience method for creating field methods
@@ -61,12 +61,12 @@ module Fixy
       end
 
       def record_fields
-        @record_fields
+        @record_fields || superclass.try(:record_fields)
       end
 
       def line_ending
         # Use the default line ending unless otherwise specified
-        @line_ending || DEFAULT_LINE_ENDING
+        @line_ending || superclass.try(:line_ending) || DEFAULT_LINE_ENDING
       end
 
       def default_record_fields
@@ -133,7 +133,14 @@ module Fixy
         # We will first retrieve the value, then format it
         method          = field[:name]
         value           = send(method)
-        formatted_value = format_value(value, field[:size], field[:type])
+        begin
+          formatted_value = format_value(value, field[:size], field[:type])
+        rescue => e
+          raise $!, "Error while formatting `#{field[:name]}` -- #{$!}", $!.backtrace
+        end
+
+        raise StandardError, "formatted value for `#{field[:name]}` violates size constraint (expected: #{field[:size]}, actual: #{formatted_value.length}), formatter: #{field[:type]}" if formatted_value.length != field[:size]
+
         formatted_value = decorator.field(formatted_value, current_record, current_position, method, field[:size], field[:type])
 
         output << formatted_value

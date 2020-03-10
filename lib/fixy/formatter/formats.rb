@@ -1,46 +1,31 @@
 module Fixy
   module Formatter
-    # Justifies an alpha to the left
     module Alphanumeric
+
+      #
+      # Alphanumeric Formatter
+      #
+      # Only contains printable characters and is
+      # left-justified and filled with spaces.
+      #
+
       def format_alphanumeric(input, byte_width)
-        input = input.to_s
-        String.new(input).ljust(byte_width, " ")
-      end
-    end
+        input_string = String.new(input.to_s).tr "#{self.class::LINE_ENDING_CRLF}#{line_ending}", ''
+        result = ''
 
-    # Formats a number 93 to "00000093"
-    module Numeric
-      def format_numeric(input, byte_width)
-        String.new(input.to_s).rjust(byte_width, "0")
-      end
-    end
+        if input_string.bytesize <= byte_width
+          result << input_string
+        else
+          input_string.each_char do |char|
+            if result.bytesize + char.bytesize <= byte_width
+              result << char
+            else
+              break
+            end
+          end
+        end
 
-    # Formats datetime to MMDDYYYYHHMMSS
-    module DateTime
-      def format_datetime(input, byte_width)
-        input.strftime("%m%d%Y%H%M%S")
-      end
-    end
-
-    # Formats date to MMDDYYYY
-    module Date
-      def format_date(input, byte_width)
-        ::Date.strptime(input, "%d/%m/%Y").strftime("%m%d%Y")
-      end
-    end
-
-    # Formats date to YYYY
-    module YearDate
-      def format_short_date(input, byte_width)
-        ::Date.strptime(input, "%d/%m/%Y").strftime("%Y")
-      end
-    end
-
-    # Formats floating point "9.34" to "000000934"
-    module Amount
-      def format_amount(input, byte_width)
-         input = "%0.2f" % input
-         input.gsub(".", "").rjust(byte_width, "0")
+        result << ' ' * (byte_width - result.bytesize)
       end
     end
   end
